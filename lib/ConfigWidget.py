@@ -59,8 +59,8 @@ class Node(QtWidgets.QGraphicsEllipseItem):
         # update qt position and original position
         self.new_pos_x = self.pos_x + self.x()
         self.new_pos_y = self.pos_y + self.y()
-        self.new_orig_x = map_to_range(self.new_pos_x, 0, self.scene_size, 0, 1)
-        self.new_orig_y = map_to_range(self.new_pos_y, 0, self.scene_size, 0, 1)
+        self.new_orig_x = map_to_range(self.new_pos_x, 0, self.scene_size[0], 0, 1)
+        self.new_orig_y = map_to_range(self.new_pos_y, 0, self.scene_size[1], 0, 1/(16/9)) * (16/9)
 
         print("delta pos", self.x(), self.y())
         print("pos", self.pos_x, self.pos_y)
@@ -83,7 +83,9 @@ class ConfigWidget(QtWidgets.QWidget):
         self.file_path = "tex.txt"
 
         self.geometry_size = 900
-        self.scene_size = 850
+        self.width = 1600
+        self.height = 900
+        self.scene_size = [self.width, self.height]
         self.rings = 0
         self.lines = 0
 
@@ -124,7 +126,7 @@ class ConfigWidget(QtWidgets.QWidget):
         save_button.clicked.connect(self.save_config)
 
         self.g_view = QtWidgets.QGraphicsView()
-        self.scene = QtWidgets.QGraphicsScene(0, 0, self.scene_size, self.scene_size, self)
+        self.scene = QtWidgets.QGraphicsScene(0, 0, self.width, self.height, self)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.addWidget(self.g_view)
@@ -153,16 +155,17 @@ class ConfigWidget(QtWidgets.QWidget):
             if point[1] > self.min_max_y[1]:
                 self.min_max_y[1] = point[1]
 
+        print('du ', self.min_max_x, self.min_max_y)
         # map points into qt coord system and create points
         for idx, p in enumerate(self.point_list):
             # map the mesh points to qt coordinate system. Imporant to display them at the right positions
             point = [map_to_range(p[0], self.min_max_x[0], self.min_max_x[1], 0, 1),
-                     map_to_range(p[1], self.min_max_y[0], self.min_max_y[1], 0, 1)]
+                     map_to_range(p[1], self.min_max_y[0], self.min_max_y[1], 0, 1/(16/9))]
 
             # create points on the graphics view
             p = Node(idx, point[0], point[1],
-                     point[0] * (self.scene_size - border_size) + border_size / 2,
-                     point[1] * (self.scene_size - border_size) + border_size / 2,
+                     point[0] * (self.width - border_size) + border_size / 2,
+                     point[1] * (self.height - border_size) + border_size / 2,
                      self.scene_size, self.min_max_x, self.min_max_y, 10, 10, self)
             self.point_item_list.append(p)
             self.scene.addItem(p)
